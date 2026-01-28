@@ -3,31 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    
-    <!-- SEO Meta Tags -->
     <title>Big Head Billionaires - Burger Stacker Game</title>
-    <meta name="description" content="Stack burgers as high as you can in this addictive 3D stacking game! Can you beat the music? A fun mini-game by B.HaleyArt.">
-    <meta name="keywords" content="burger stacker, stacking game, 3D game, mini game, Big Head Billionaires, B.HaleyArt">
+    <meta name="description" content="Stack burgers as high as you can! Can you beat the music?">
     <meta name="author" content="B.HaleyArt">
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://your-username.github.io/burger-stack-game/">
-    <meta property="og:title" content="Big Head Billionaires - Burger Stacker Game">
-    <meta property="og:description" content="Stack burgers as high as you can! Can you beat the music? A fun 3D stacking game by B.HaleyArt.">
-    <meta property="og:image" content="https://your-username.github.io/burger-stack-game/screenshot.jpg">
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://your-username.github.io/burger-stack-game/">
-    <meta property="twitter:title" content="Big Head Billionaires - Burger Stacker Game">
-    <meta property="twitter:description" content="Stack burgers as high as you can! Can you beat the music? A fun 3D stacking game by B.HaleyArt.">
-    <meta property="twitter:image" content="https://your-username.github.io/burger-stack-game/screenshot.jpg">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍔</text></svg>">
     
     <style>
         * {
@@ -42,14 +20,11 @@
             overflow: hidden;
             position: fixed;
             -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
-            -webkit-tap-highlight-color: transparent;
         }
         
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             touch-action: none;
             background: #2c3e50;
         }
@@ -57,10 +32,8 @@
         canvas {
             display: block;
             touch-action: none;
-            -webkit-touch-callout: none;
         }
         
-        /* Start Menu */
         #startMenu {
             position: absolute;
             top: 0;
@@ -86,6 +59,8 @@
             margin-bottom: 20px;
             text-shadow: 0 4px 12px rgba(0,0,0,0.5);
             animation: float 3s ease-in-out infinite;
+            text-align: center;
+            white-space: nowrap;
         }
         
         @keyframes float {
@@ -138,11 +113,6 @@
         
         #startButton:hover {
             transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-        }
-        
-        #startButton:active {
-            transform: scale(0.98);
         }
         
         .credits {
@@ -152,7 +122,6 @@
             color: rgba(255,255,255,0.7);
         }
         
-        /* Mute Button */
         #muteButton {
             position: absolute;
             top: 20px;
@@ -169,19 +138,12 @@
             justify-content: center;
             align-items: center;
             transition: all 0.3s;
-            backdrop-filter: blur(10px);
         }
         
         #muteButton.visible {
             display: flex !important;
         }
         
-        #muteButton:hover {
-            background: rgba(255,255,255,0.3);
-            transform: scale(1.1);
-        }
-        
-        /* YouTube Button on Game Over */
         #youtubeButton {
             display: none;
             background: #FF0000;
@@ -192,9 +154,7 @@
             color: white;
             border-radius: 30px;
             cursor: pointer;
-            margin-top: 20px;
             box-shadow: 0 4px 15px rgba(255,0,0,0.4);
-            transition: all 0.3s;
             text-decoration: none;
             position: absolute;
             top: 65%;
@@ -206,40 +166,38 @@
             display: inline-block !important;
         }
         
-        #youtubeButton:hover {
-            transform: translateX(-50%) scale(1.05);
-            box-shadow: 0 6px 20px rgba(255,0,0,0.6);
-        }
-        
-        .youtube-icon {
-            font-size: 20px;
-            margin-right: 8px;
-        }
-        
-        /* Mobile responsive */
         @media (max-width: 768px) {
-            #startMenu h1 {
-                font-size: 48px;
+            #startMenu h1 { 
+                font-size: 36px; 
+                padding: 0 20px;
+                white-space: nowrap;
             }
-            
-            .burger-emoji {
-                font-size: 80px;
+            .burger-emoji { font-size: 80px; }
+            .instructions { 
+                font-size: 14px; 
+                padding: 0 20px;
             }
-            
-            .instructions {
-                font-size: 16px;
-                padding: 0 30px;
+            #startButton { padding: 15px 40px; font-size: 22px; }
+        }
+        
+        @media (max-width: 480px) {
+            #startMenu h1 { 
+                font-size: 28px; 
+                padding: 0 15px;
             }
-            
-            #startButton {
-                padding: 15px 40px;
-                font-size: 22px;
+            .burger-emoji { font-size: 60px; }
+            .instructions { 
+                font-size: 13px; 
+                padding: 0 15px;
+            }
+            #startButton { 
+                padding: 12px 30px; 
+                font-size: 18px; 
             }
         }
     </style>
 </head>
 <body>
-    <!-- Start Menu -->
     <div id="startMenu">
         <div class="burger-emoji">🍔</div>
         <h1>BURGER STACKER</h1>
@@ -249,18 +207,341 @@
             <p><span class="highlight">🎯 Perfect Stack:</span> 3 perfect drops = size restored</p>
             <p><span class="highlight">🎮 Controls:</span> Click/Tap to drop</p>
         </div>
-        <button id="startButton" onclick="window.startGameFunction()">START GAME</button>
+        <button id="startButton">START GAME</button>
         <div class="credits">Created by B.HaleyArt</div>
     </div>
     
-    <!-- Mute Button (shown during gameplay) -->
-    <button id="muteButton" onclick="window.toggleMuteFunction()">🔊</button>
+    <button id="muteButton">🔊</button>
     
-    <!-- YouTube Button (shown on game over) -->
-    <a id="youtubeButton" href="https://youtube.com/@bhaleyart" target="_blank" rel="noopener noreferrer">
-        <span class="youtube-icon">▶️</span> Visit B.HaleyArt
+    <a id="youtubeButton" href="https://youtube.com/@bhaleyart" target="_blank">
+        <span>▶️</span> Visit B.HaleyArt
     </a>
-    
-    <script type="module" src="./game.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.min.js"></script>
+    <script>
+        // Game constants
+        const GAME_STATE_MENU = 0;
+        const GAME_STATE_PLAYING = 1;
+        const GAME_STATE_GAMEOVER = 2;
+
+        const INITIAL_BLOCK_SIZE = 10;
+        const INITIAL_SPEED = 0.12;
+        const SPEED_INCREMENT = 0.025;
+        const SPEED_INCREASE_EVERY = 8;
+        const PERFECT_EPSILON = 0.05;
+        const MAX_COMEBACK_SIZE = 10;
+        const STREAK_FOR_COMEBACK = 3;
+
+        const BURGER_LAYERS = [
+            [
+                { height: 0.5, color: 0x8B4513 },
+                { height: 0.7, color: 0x8B0000 },
+                { height: 0.3, color: 0x006400 },
+                { height: 0.5, color: 0xF4A460 }
+            ],
+            [
+                { height: 0.5, color: 0x8B4513 },
+                { height: 0.7, color: 0x8B0000 },
+                { height: 0.3, color: 0xFFD700 },
+                { height: 0.3, color: 0x006400 },
+                { height: 0.5, color: 0xF4A460 }
+            ],
+            [
+                { height: 0.5, color: 0x8B4513 },
+                { height: 0.7, color: 0x8B0000 },
+                { height: 0.1, color: 0xD3D3D3 },
+                { height: 0.7, color: 0x8B0000 },
+                { height: 0.5, color: 0xF4A460 }
+            ],
+            [
+                { height: 0.5, color: 0x8B4513 },
+                { height: 0.7, color: 0x8B0000 },
+                { height: 0.2, color: 0xFF6347 },
+                { height: 0.15, color: 0xDA70D6 },
+                { height: 0.3, color: 0x006400 },
+                { height: 0.5, color: 0xF4A460 }
+            ]
+        ];
+
+        let renderer, scene, camera;
+        let blocks = [];
+        let cutPieces = [];
+        let activeBlock = null;
+        let direction = 1;
+        let moveAxis = 'x';
+        let blockSpeed = INITIAL_SPEED;
+        let score = 0;
+        let highScore = 0;
+        let gameState = GAME_STATE_MENU;
+        let perfectStreak = 0;
+        let flashMesh = null;
+        let flashTimer = 0;
+        let backgroundMusic = null;
+        let isMuted = false;
+
+        const scoreDiv = document.createElement('div');
+        scoreDiv.style.cssText = 'position:absolute;top:32px;width:100%;text-align:center;font-size:48px;font-weight:bold;color:#fff;text-shadow:0 2px 8px #000a;pointer-events:none;display:none;';
+        document.body.appendChild(scoreDiv);
+
+        const gameOverDiv = document.createElement('div');
+        gameOverDiv.style.cssText = 'position:absolute;top:45%;width:100%;text-align:center;font-size:36px;color:#fff;text-shadow:0 2px 8px #000a;display:none;pointer-events:none;';
+        document.body.appendChild(gameOverDiv);
+
+        function lerp(a, b, t) { return a + (b - a) * t; }
+
+        function getBurgerHeight(idx) {
+            return BURGER_LAYERS[idx % BURGER_LAYERS.length].reduce((s, l) => s + l.height, 0);
+        }
+
+        function createBlock(width, depth, y, burgerIdx, x = 0, z = 0) {
+            const group = new THREE.Group();
+            const layers = BURGER_LAYERS[burgerIdx % BURGER_LAYERS.length];
+            const totalH = getBurgerHeight(burgerIdx);
+            let currentH = -totalH / 2;
+
+            layers.forEach(layer => {
+                const geo = new THREE.BoxGeometry(width, layer.height, depth);
+                const mat = new THREE.MeshLambertMaterial({ color: layer.color });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.y = currentH + layer.height / 2;
+                group.add(mesh);
+                currentH += layer.height;
+            });
+
+            group.position.set(x, y, z);
+            return group;
+        }
+
+        function setupTower() {
+            const h = getBurgerHeight(0);
+            const mesh = createBlock(INITIAL_BLOCK_SIZE, INITIAL_BLOCK_SIZE, h / 2, 0);
+            scene.add(mesh);
+            blocks.push({
+                mesh, width: INITIAL_BLOCK_SIZE, depth: INITIAL_BLOCK_SIZE,
+                x: 0, z: 0, y: h / 2, burgerTypeIndex: 0, burgerHeight: h
+            });
+        }
+
+        function spawnNextBlock() {
+            const prev = blocks[blocks.length - 1];
+            const burgerIdx = Math.floor(Math.random() * BURGER_LAYERS.length);
+            const h = getBurgerHeight(burgerIdx);
+            const y = prev.y + prev.burgerHeight / 2 + h / 2;
+            const x = moveAxis === 'x' ? -18 * direction : prev.x;
+            const z = moveAxis === 'z' ? -18 * direction : prev.z;
+            const mesh = createBlock(prev.width, prev.depth, y, burgerIdx, x, z);
+            scene.add(mesh);
+            activeBlock = {
+                mesh, width: prev.width, depth: prev.depth, x, z, y, direction, moveAxis,
+                speed: blockSpeed, state: 'sliding', burgerTypeIndex: burgerIdx, burgerHeight: h
+            };
+        }
+
+        function dropActiveBlock() {
+            if (!activeBlock || activeBlock.state !== 'sliding') return;
+            activeBlock.state = 'dropping';
+            const prev = blocks[blocks.length - 1];
+            const axis = activeBlock.moveAxis;
+            const offset = axis === 'x' ? activeBlock.x - prev.x : activeBlock.z - prev.z;
+            const size = axis === 'x' ? activeBlock.width : activeBlock.depth;
+            let overlap = size - Math.abs(offset);
+            
+            if (Math.abs(offset) < PERFECT_EPSILON) {
+                overlap = size;
+                perfectStreak++;
+                if (perfectStreak >= STREAK_FOR_COMEBACK) {
+                    if (axis === 'x') activeBlock.width = Math.min(MAX_COMEBACK_SIZE, INITIAL_BLOCK_SIZE);
+                    else activeBlock.depth = Math.min(MAX_COMEBACK_SIZE, INITIAL_BLOCK_SIZE);
+                    perfectStreak = 0;
+                }
+            } else {
+                perfectStreak = 0;
+            }
+
+            if (overlap <= 0) {
+                activeBlock.state = 'falling';
+                activeBlock.fallVelocity = -0.7;
+                if (score > highScore) highScore = score;
+                gameState = GAME_STATE_GAMEOVER;
+                if (backgroundMusic) {
+                    backgroundMusic.pause();
+                    backgroundMusic.currentTime = 0;
+                }
+                gameOverDiv.innerHTML = `Game Over!<br>Score: ${score}<br>High Score: ${highScore}<br><span style="font-size:24px">Tap to Restart</span>`;
+                gameOverDiv.style.display = '';
+                document.getElementById('youtubeButton').classList.add('visible');
+                return;
+            }
+
+            if (axis === 'x') {
+                activeBlock.width = overlap;
+                activeBlock.x = prev.x + offset / 2;
+            } else {
+                activeBlock.depth = overlap;
+                activeBlock.z = prev.z + offset / 2;
+            }
+
+            while (activeBlock.mesh.children.length > 0) {
+                const child = activeBlock.mesh.children[0];
+                activeBlock.mesh.remove(child);
+                child.geometry.dispose();
+                child.material.dispose();
+            }
+
+            const layers = BURGER_LAYERS[activeBlock.burgerTypeIndex % BURGER_LAYERS.length];
+            const totalH = activeBlock.burgerHeight;
+            let currentH = -totalH / 2;
+            layers.forEach(layer => {
+                const geo = new THREE.BoxGeometry(activeBlock.width, layer.height, activeBlock.depth);
+                const mat = new THREE.MeshLambertMaterial({ color: layer.color });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.y = currentH + layer.height / 2;
+                activeBlock.mesh.add(mesh);
+                currentH += layer.height;
+            });
+
+            activeBlock.mesh.position.set(activeBlock.x, activeBlock.y, activeBlock.z);
+            blocks.push({
+                mesh: activeBlock.mesh, width: activeBlock.width, depth: activeBlock.depth,
+                x: activeBlock.x, z: activeBlock.z, y: activeBlock.y,
+                burgerTypeIndex: activeBlock.burgerTypeIndex, burgerHeight: activeBlock.burgerHeight
+            });
+            activeBlock = null;
+            score++;
+            scoreDiv.innerText = score;
+            if (score % SPEED_INCREASE_EVERY === 0) blockSpeed += SPEED_INCREMENT;
+            direction *= -1;
+            moveAxis = moveAxis === 'x' ? 'z' : 'x';
+            setTimeout(spawnNextBlock, 130);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (gameState === GAME_STATE_PLAYING && activeBlock && activeBlock.state === 'sliding') {
+                if (activeBlock.moveAxis === 'x') {
+                    activeBlock.x += activeBlock.speed * activeBlock.direction;
+                    if (Math.abs(activeBlock.x) > 18) activeBlock.direction *= -1;
+                    activeBlock.mesh.position.x = activeBlock.x;
+                } else {
+                    activeBlock.z += activeBlock.speed * activeBlock.direction;
+                    if (Math.abs(activeBlock.z) > 18) activeBlock.direction *= -1;
+                    activeBlock.mesh.position.z = activeBlock.z;
+                }
+            }
+
+            if (activeBlock && activeBlock.state === 'falling') {
+                activeBlock.mesh.position.y += activeBlock.fallVelocity;
+                activeBlock.fallVelocity -= 0.04;
+            }
+
+            if (blocks.length > 0) {
+                const topY = blocks[blocks.length - 1].y;
+                camera.position.y = lerp(camera.position.y, topY + 18, 0.08);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function onUserInput(e) {
+            e.preventDefault();
+            if (gameState === GAME_STATE_PLAYING) {
+                dropActiveBlock();
+            } else if (gameState === GAME_STATE_GAMEOVER) {
+                resetGame();
+            }
+        }
+
+        function resetGame() {
+            while (blocks.length) {
+                const b = blocks.pop();
+                scene.remove(b.mesh);
+            }
+            score = 0;
+            blockSpeed = INITIAL_SPEED;
+            perfectStreak = 0;
+            direction = 1;
+            moveAxis = 'x';
+            gameOverDiv.style.display = 'none';
+            document.getElementById('youtubeButton').classList.remove('visible');
+            setupTower();
+            spawnNextBlock();
+            scoreDiv.innerText = '0';
+            gameState = GAME_STATE_PLAYING;
+            if (backgroundMusic) {
+                backgroundMusic.currentTime = 0;
+                backgroundMusic.play();
+            }
+        }
+
+        function startGame() {
+            console.log('Starting game...');
+            document.getElementById('startMenu').classList.add('hidden');
+            scoreDiv.style.display = 'block';
+            document.getElementById('muteButton').classList.add('visible');
+            gameState = GAME_STATE_PLAYING;
+            
+            if (!backgroundMusic) {
+                backgroundMusic = new Audio('./music.mp3');
+                backgroundMusic.volume = 0.5;
+                backgroundMusic.addEventListener('ended', () => {
+                    if (gameState === GAME_STATE_PLAYING) {
+                        gameOverDiv.innerHTML = `🎉 YOU BEAT THE SONG! 🎉<br>Score: ${score}<br>High Score: ${highScore}`;
+                        gameOverDiv.style.display = '';
+                        gameState = GAME_STATE_GAMEOVER;
+                    }
+                });
+            }
+            backgroundMusic.play().catch(() => console.log('Music needs interaction'));
+            
+            setupTower();
+            spawnNextBlock();
+            scoreDiv.innerText = '0';
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            if (backgroundMusic) backgroundMusic.muted = isMuted;
+            document.getElementById('muteButton').textContent = isMuted ? '🔇' : '🔊';
+        }
+
+        // Setup Three.js
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x2c3e50);
+
+        camera = new THREE.OrthographicCamera(
+            window.innerWidth / -32, window.innerWidth / 32,
+            window.innerHeight / 32, window.innerHeight / -32,
+            0.1, 1000
+        );
+        camera.position.set(18, 18, 22);
+        camera.lookAt(0, 0, 0);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.66));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.72);
+        dirLight.position.set(8, 40, 16);
+        scene.add(dirLight);
+
+        window.addEventListener('resize', () => {
+            camera.left = window.innerWidth / -32;
+            camera.right = window.innerWidth / 32;
+            camera.top = window.innerHeight / 32;
+            camera.bottom = window.innerHeight / -32;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        renderer.domElement.addEventListener('click', onUserInput);
+        renderer.domElement.addEventListener('touchstart', onUserInput);
+        document.getElementById('startButton').addEventListener('click', startGame);
+        document.getElementById('muteButton').addEventListener('click', toggleMute);
+
+        animate();
+        console.log('Game loaded! Click START GAME');
+    </script>
 </body>
 </html>
