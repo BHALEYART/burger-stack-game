@@ -1,7 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
 
-const GAME_STATE_PLAYING = 0;
-const GAME_STATE_GAMEOVER = 1;
+const GAME_STATE_MENU = 0;
+const GAME_STATE_PLAYING = 1;
+const GAME_STATE_GAMEOVER = 2;
 
 const BLOCK_HEIGHT = 2;
 const INITIAL_BLOCK_SIZE = 10;
@@ -17,16 +18,16 @@ const CAMERA_OFFSET_Z = 22;
 const BURGER_LAYERS = [
     // Burger 1 (Simple)
     [
-        { height: 0.5, color: 0x8B4513, name: 'Bottom Bun' }, // Brown
-        { height: 0.7, color: 0x8B0000, name: 'Patty' },      // Dark Red
-        { height: 0.3, color: 0x006400, name: 'Lettuce' },    // Dark Green
-        { height: 0.5, color: 0xF4A460, name: 'Top Bun' }     // Sandy Brown
+        { height: 0.5, color: 0x8B4513, name: 'Bottom Bun' },
+        { height: 0.7, color: 0x8B0000, name: 'Patty' },
+        { height: 0.3, color: 0x006400, name: 'Lettuce' },
+        { height: 0.5, color: 0xF4A460, name: 'Top Bun' }
     ],
     // Burger 2 (Cheese)
     [
         { height: 0.5, color: 0x8B4513, name: 'Bottom Bun' },
         { height: 0.7, color: 0x8B0000, name: 'Patty' },
-        { height: 0.3, color: 0xFFD700, name: 'Cheese' },  // Gold
+        { height: 0.3, color: 0xFFD700, name: 'Cheese' },
         { height: 0.3, color: 0x006400, name: 'Lettuce' },
         { height: 0.5, color: 0xF4A460, name: 'Top Bun' }
     ],
@@ -34,7 +35,7 @@ const BURGER_LAYERS = [
     [
         { height: 0.5, color: 0x8B4513, name: 'Bottom Bun' },
         { height: 0.7, color: 0x8B0000, name: 'Patty' },
-        { height: 0.1, color: 0xD3D3D3, name: 'Pickle' }, // Light Gray
+        { height: 0.1, color: 0xD3D3D3, name: 'Pickle' },
         { height: 0.7, color: 0x8B0000, name: 'Patty' },
         { height: 0.5, color: 0xF4A460, name: 'Top Bun' }
     ],
@@ -42,13 +43,12 @@ const BURGER_LAYERS = [
     [
         { height: 0.5, color: 0x8B4513, name: 'Bottom Bun' },
         { height: 0.7, color: 0x8B0000, name: 'Patty' },
-        { height: 0.2, color: 0xFF6347, name: 'Tomato' },  // Tomato Red
-        { height: 0.15, color: 0xDA70D6, name: 'Onion' },  // Orchid
+        { height: 0.2, color: 0xFF6347, name: 'Tomato' },
+        { height: 0.15, color: 0xDA70D6, name: 'Onion' },
         { height: 0.3, color: 0x006400, name: 'Lettuce' },
         { height: 0.5, color: 0xF4A460, name: 'Top Bun' }
     ]
 ];
-
 
 let renderer, scene, camera, ambientLight, dirLight;
 let blocks = [];
@@ -60,13 +60,20 @@ let moveAxis = 'x';
 let blockSpeed = INITIAL_SPEED;
 let score = 0;
 let highScore = 0;
-let gameState = GAME_STATE_PLAYING;
+let gameState = GAME_STATE_MENU;
 let perfectStreak = 0;
 let flashMesh = null;
 let flashTimer = 0;
 let backgroundColor = new THREE.Color();
-let baseHue = 170;
-let topHue = 320;
+let baseHue = 200;
+let topHue = 220;
+
+// Audio context and music
+let audioContext;
+let musicGainNode;
+let isMuted = false;
+let musicStartTime = 0;
+let songDuration = 90; // 90 seconds song
 
 const scoreDiv = document.createElement('div');
 scoreDiv.style.position = 'absolute';
@@ -79,6 +86,7 @@ scoreDiv.style.fontWeight = 'bold';
 scoreDiv.style.color = '#fff';
 scoreDiv.style.textShadow = '0 2px 8px #000a';
 scoreDiv.style.pointerEvents = 'none';
+scoreDiv.style.display = 'none';
 document.body.appendChild(scoreDiv);
 
 const gameOverDiv = document.createElement('div');
@@ -94,13 +102,19 @@ gameOverDiv.style.display = 'none';
 gameOverDiv.style.pointerEvents = 'none';
 document.body.appendChild(gameOverDiv);
 
+// UI Elements
+const startMenu = document.getElementById('startMenu');
+const startButton = document.getElementById('startButton');
+const muteButton = document.getElementById('muteButton');
+const youtubeButton = document.getElementById('youtubeButton');
+
 function lerp(a, b, t) {
     return a + (b - a) * t;
 }
 
 function getGradientColor(t) {
     const h = lerp(baseHue, topHue, t);
-    backgroundColor.setHSL(h / 360, 0.55, 0.65);
+    backgroundColor.setHSL(h / 360, 0.2, 0.3);
     return backgroundColor.getStyle();
 }
 
@@ -150,25 +164,30 @@ function createFlashOutline(width, depth, y) {
     return line;
 }
 
-function getBlockColor(idx, total) {
-    const t = total <= 1 ? 0 : idx / (total - 1);
-    const h = lerp(baseHue, topHue, t);
-    const c = new THREE.Color();
-    c.setHSL(h / 360, 0.13 + t * 0.13, 1 - t * 0.25);
-    return c.getHex();
-}
-
 function updateScoreDisplay() {
     scoreDiv.innerText = score;
 }
 
 function showGameOver() {
-    gameOverDiv.innerHTML = `Game Over!<br>Score: ${score}<br>High Score: ${highScore}<br><span style="font-size:24px;">Tap to Restart</span>`;
+    const wonGame = (audioContext.currentTime - musicStartTime) >= songDuration;
+    const message = wonGame ? 
+        `🎉 YOU BEAT THE SONG! 🎉<br>Score: ${score}<br>High Score: ${highScore}` :
+        `Game Over!<br>Score: ${score}<br>High Score: ${highScore}`;
+    
+    gameOverDiv.innerHTML = `${message}<br><span style="font-size:24px;">Tap to Restart</span>`;
     gameOverDiv.style.display = '';
+    
+    // Show YouTube button
+    youtubeButton.style.display = 'inline-block';
+    youtubeButton.style.position = 'absolute';
+    youtubeButton.style.top = '65%';
+    youtubeButton.style.left = '50%';
+    youtubeButton.style.transform = 'translateX(-50%)';
 }
 
 function hideGameOver() {
     gameOverDiv.style.display = 'none';
+    youtubeButton.style.display = 'none';
 }
 
 function resetGame() {
@@ -331,7 +350,7 @@ function dropActiveBlock() {
             activeBlock.z = prev.z + offset / 2;
         }
     }
-    // Remove existing layers
+    
     while(activeBlock.mesh.children.length > 0) {
         const child = activeBlock.mesh.children[0];
         activeBlock.mesh.remove(child);
@@ -339,7 +358,6 @@ function dropActiveBlock() {
         child.material.dispose();
     }
 
-    // Re-create layers with new dimensions
     const burgerConfig = BURGER_LAYERS[activeBlock.burgerTypeIndex % BURGER_LAYERS.length];
     const totalBurgerHeight = activeBlock.burgerHeight;
     let currentRelativeHeight = -totalBurgerHeight / 2;
@@ -352,7 +370,6 @@ function dropActiveBlock() {
 
     activeBlock.mesh.position.set(activeBlock.x, activeBlock.y, activeBlock.z);
     
-    // FIX: Include burgerTypeIndex and burgerHeight when pushing to blocks array
     blocks.push({
         mesh: activeBlock.mesh,
         width: activeBlock.width,
@@ -382,6 +399,7 @@ function missBlock() {
         highScore = score;
     }
     gameState = GAME_STATE_GAMEOVER;
+    stopMusic();
     showGameOver();
 }
 
@@ -399,7 +417,7 @@ function createCutPiece(axis, block, cutSize, dir, burgerTypeIndex) {
     if (axis === 'x') {
         newWidth = cutSize;
         newX = block.x + dir * (block.width / 2 + cutSize / 2);
-    } else { // axis === 'z'
+    } else {
         newDepth = cutSize;
         newZ = block.z + dir * (block.depth / 2 + cutSize / 2);
     }
@@ -429,7 +447,6 @@ function updateCutPieces(dt) {
         c.velocity.y -= 0.022 * dt * 60;
         if (c.mesh.position.y < -40) {
             scene.remove(c.mesh);
-            // Dispose of children's geometries and materials
             c.mesh.children.forEach(child => {
                 if (child.geometry) child.geometry.dispose();
                 if (child.material) child.material.dispose();
@@ -453,65 +470,177 @@ function updateFlash(dt) {
     }
 }
 
+// Music generation
+function initAudio() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        musicGainNode = audioContext.createGain();
+        musicGainNode.connect(audioContext.destination);
+        musicGainNode.gain.value = 0.3;
+    }
+}
+
+function playNote(frequency, startTime, duration, type = 'sine') {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+    
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(musicGainNode);
+    
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
+}
+
+function startMusic() {
+    if (!audioContext) return;
+    
+    stopMusic();
+    musicStartTime = audioContext.currentTime;
+    
+    // Upbeat, catchy melody
+    const melody = [
+        // Bar 1-2
+        [523.25, 0.3], [587.33, 0.3], [659.25, 0.3], [783.99, 0.6],
+        [659.25, 0.3], [587.33, 0.3], [523.25, 0.6],
+        // Bar 3-4
+        [587.33, 0.3], [659.25, 0.3], [739.99, 0.3], [880.00, 0.6],
+        [783.99, 0.3], [659.25, 0.3], [587.33, 0.6],
+        // Bar 5-6
+        [523.25, 0.3], [659.25, 0.3], [783.99, 0.3], [1046.50, 0.6],
+        [783.99, 0.3], [659.25, 0.3], [523.25, 0.6],
+        // Bar 7-8
+        [587.33, 0.3], [523.25, 0.3], [466.16, 0.3], [523.25, 0.9]
+    ];
+    
+    const bassline = [
+        [261.63, 1.2], [329.63, 1.2], [392.00, 1.2], [329.63, 1.2],
+        [261.63, 1.2], [329.63, 1.2], [392.00, 1.2], [329.63, 1.2]
+    ];
+    
+    let currentTime = musicStartTime;
+    const loopDuration = 9.6;
+    const numLoops = Math.ceil(songDuration / loopDuration);
+    
+    for (let loop = 0; loop < numLoops; loop++) {
+        let time = currentTime;
+        
+        // Play melody
+        melody.forEach(([freq, duration]) => {
+            playNote(freq, time, duration, 'triangle');
+            time += duration;
+        });
+        
+        // Play bassline
+        time = currentTime;
+        bassline.forEach(([freq, duration]) => {
+            playNote(freq * 0.5, time, duration, 'sine');
+            time += duration;
+        });
+        
+        currentTime += loopDuration;
+    }
+}
+
+function stopMusic() {
+    if (audioContext) {
+        musicGainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    }
+}
+
+function toggleMute() {
+    isMuted = !isMuted;
+    if (musicGainNode) {
+        musicGainNode.gain.value = isMuted ? 0 : 0.3;
+    }
+    muteButton.textContent = isMuted ? '🔇' : '🔊';
+}
+
 function animate(time) {
     requestAnimationFrame(animate);
     const dt = Math.min(0.035, renderer.info.render.frame ? (time - renderer.info.render.frame) / 1000 : 0.016);
     renderer.info.render.frame = time;
-    if (activeBlock && activeBlock.state === 'sliding') {
-        let bound = 18;
-        if (activeBlock.moveAxis === 'x') {
-            activeBlock.x += activeBlock.speed * activeBlock.direction;
-            if (activeBlock.x > bound) {
-                activeBlock.x = bound;
-                activeBlock.direction *= -1;
+    
+    if (gameState === GAME_STATE_PLAYING) {
+        if (activeBlock && activeBlock.state === 'sliding') {
+            let bound = 18;
+            if (activeBlock.moveAxis === 'x') {
+                activeBlock.x += activeBlock.speed * activeBlock.direction;
+                if (activeBlock.x > bound) {
+                    activeBlock.x = bound;
+                    activeBlock.direction *= -1;
+                }
+                if (activeBlock.x < -bound) {
+                    activeBlock.x = -bound;
+                    activeBlock.direction *= -1;
+                }
+                activeBlock.mesh.position.x = activeBlock.x;
+            } else {
+                activeBlock.z += activeBlock.speed * activeBlock.direction;
+                if (activeBlock.z > bound) {
+                    activeBlock.z = bound;
+                    activeBlock.direction *= -1;
+                }
+                if (activeBlock.z < -bound) {
+                    activeBlock.z = -bound;
+                    activeBlock.direction *= -1;
+                }
+                activeBlock.mesh.position.z = activeBlock.z;
             }
-            if (activeBlock.x < -bound) {
-                activeBlock.x = -bound;
-                activeBlock.direction *= -1;
+        }
+        if (activeBlock && activeBlock.state === 'falling') {
+            activeBlock.mesh.position.y += activeBlock.fallVelocity;
+            activeBlock.fallVelocity -= 0.04;
+            if (activeBlock.mesh.position.y < -40) {
+                activeBlock.mesh.position.y = -40;
             }
-            activeBlock.mesh.position.x = activeBlock.x;
-        } else {
-            activeBlock.z += activeBlock.speed * activeBlock.direction;
-            if (activeBlock.z > bound) {
-                activeBlock.z = bound;
-                activeBlock.direction *= -1;
-            }
-            if (activeBlock.z < -bound) {
-                activeBlock.z = -bound;
-                activeBlock.direction *= -1;
-            }
-            activeBlock.mesh.position.z = activeBlock.z;
+        }
+        updateCutPieces(dt);
+        updateFlash(dt);
+        if (blocks.length > 0) {
+            const topY = blocks[blocks.length - 1].y;
+            camera.position.y = lerp(camera.position.y, topY + CAMERA_OFFSET_Y, 0.08);
+            camera.position.z = lerp(camera.position.z, CAMERA_OFFSET_Z + Math.max(0, (blocks.length - 12) * 0.5), 0.08);
+        }
+        if (score > 0) {
+            let t = Math.min(1, score / 30);
+            const col = getGradientColor(t);
+            renderer.setClearColor(col);
         }
     }
-    if (activeBlock && activeBlock.state === 'falling') {
-        activeBlock.mesh.position.y += activeBlock.fallVelocity;
-        activeBlock.fallVelocity -= 0.04;
-        if (activeBlock.mesh.position.y < -40) {
-            activeBlock.mesh.position.y = -40;
-        }
-    }
-    updateCutPieces(dt);
-    updateFlash(dt);
-    if (blocks.length > 0) {
-        const topY = blocks[blocks.length - 1].y;
-        camera.position.y = lerp(camera.position.y, topY + CAMERA_OFFSET_Y, 0.08);
-        camera.position.z = lerp(camera.position.z, CAMERA_OFFSET_Z + Math.max(0, (blocks.length - 12) * 0.5), 0.08);
-    }
-    if (score > 0) {
-        let t = Math.min(1, score / 30);
-        const col = getGradientColor(t);
-        renderer.setClearColor(col);
-    }
+    
     renderer.render(scene, camera);
 }
 
-function onUserInput() {
+function onUserInput(event) {
+    if (event) {
+        event.preventDefault();
+    }
+    
     if (gameState === GAME_STATE_PLAYING) {
         dropActiveBlock();
     } else if (gameState === GAME_STATE_GAMEOVER) {
         resetGame();
         gameState = GAME_STATE_PLAYING;
+        startMusic();
     }
+}
+
+function startGame() {
+    startMenu.style.display = 'none';
+    scoreDiv.style.display = 'block';
+    muteButton.style.display = 'flex';
+    gameState = GAME_STATE_PLAYING;
+    
+    initAudio();
+    startMusic();
+    resetGame();
 }
 
 function setupThree() {
@@ -544,7 +673,7 @@ function setupThree() {
 
     const bgPlane = new THREE.Mesh(
         new THREE.PlaneGeometry(200, 200),
-        new THREE.MeshBasicMaterial({ color: 0x89d6c2, depthWrite: false })
+        new THREE.MeshBasicMaterial({ color: 0x2c3e50, depthWrite: false })
     );
     bgPlane.position.y = -32;
     bgPlane.position.z = -60;
@@ -552,7 +681,18 @@ function setupThree() {
 
     window.addEventListener('resize', onWindowResize);
     renderer.domElement.addEventListener('pointerdown', onUserInput);
-    renderer.domElement.addEventListener('touchstart', onUserInput);
+    renderer.domElement.addEventListener('touchstart', onUserInput, { passive: false });
+    renderer.domElement.addEventListener('click', onUserInput);
+    renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+    
+    let lastTouchEnd = 0;
+    renderer.domElement.addEventListener('touchend', (e) => {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+            e.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, { passive: false });
 }
 
 function onWindowResize() {
@@ -564,6 +704,9 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+// Event listeners
+startButton.addEventListener('click', startGame);
+muteButton.addEventListener('click', toggleMute);
+
 setupThree();
-resetGame();
 animate(performance.now());
