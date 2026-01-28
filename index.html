@@ -76,6 +76,10 @@
             color: white;
         }
         
+        #startMenu.hidden {
+            display: none;
+        }
+        
         #startMenu h1 {
             font-size: 72px;
             font-weight: bold;
@@ -168,6 +172,10 @@
             backdrop-filter: blur(10px);
         }
         
+        #muteButton.visible {
+            display: flex;
+        }
+        
         #muteButton:hover {
             background: rgba(255,255,255,0.3);
             transform: scale(1.1);
@@ -188,10 +196,18 @@
             box-shadow: 0 4px 15px rgba(255,0,0,0.4);
             transition: all 0.3s;
             text-decoration: none;
+            position: absolute;
+            top: 65%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        #youtubeButton.visible {
+            display: inline-block;
         }
         
         #youtubeButton:hover {
-            transform: scale(1.05);
+            transform: translateX(-50%) scale(1.05);
             box-shadow: 0 6px 20px rgba(255,0,0,0.6);
         }
         
