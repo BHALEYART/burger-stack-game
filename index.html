@@ -77,7 +77,7 @@
         }
         
         #startMenu.hidden {
-            display: none;
+            display: none !important;
         }
         
         #startMenu h1 {
@@ -173,7 +173,7 @@
         }
         
         #muteButton.visible {
-            display: flex;
+            display: flex !important;
         }
         
         #muteButton:hover {
@@ -203,7 +203,7 @@
         }
         
         #youtubeButton.visible {
-            display: inline-block;
+            display: inline-block !important;
         }
         
         #youtubeButton:hover {
@@ -249,12 +249,12 @@
             <p><span class="highlight">🎯 Perfect Stack:</span> 3 perfect drops = size restored</p>
             <p><span class="highlight">🎮 Controls:</span> Click/Tap to drop</p>
         </div>
-        <button id="startButton">START GAME</button>
+        <button id="startButton" onclick="window.startGameFunction()">START GAME</button>
         <div class="credits">Created by B.HaleyArt</div>
     </div>
     
     <!-- Mute Button (shown during gameplay) -->
-    <button id="muteButton">🔊</button>
+    <button id="muteButton" onclick="window.toggleMuteFunction()">🔊</button>
     
     <!-- YouTube Button (shown on game over) -->
     <a id="youtubeButton" href="https://youtube.com/@bhaleyart" target="_blank" rel="noopener noreferrer">
