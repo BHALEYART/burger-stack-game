@@ -2,8 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Burger Stack Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- SEO Meta Tags -->
+    <title>Big Head Billionaires - Burger Stacker Game</title>
+    <meta name="description" content="Stack burgers as high as you can in this addictive 3D stacking game! Can you beat the music? A fun mini-game by B.HaleyArt.">
+    <meta name="keywords" content="burger stacker, stacking game, 3D game, mini game, Big Head Billionaires, B.HaleyArt">
+    <meta name="author" content="B.HaleyArt">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-username.github.io/burger-stack-game/">
+    <meta property="og:title" content="Big Head Billionaires - Burger Stacker Game">
+    <meta property="og:description" content="Stack burgers as high as you can! Can you beat the music? A fun 3D stacking game by B.HaleyArt.">
+    <meta property="og:image" content="https://your-username.github.io/burger-stack-game/screenshot.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://your-username.github.io/burger-stack-game/">
+    <meta property="twitter:title" content="Big Head Billionaires - Burger Stacker Game">
+    <meta property="twitter:description" content="Stack burgers as high as you can! Can you beat the music? A fun 3D stacking game by B.HaleyArt.">
+    <meta property="twitter:image" content="https://your-username.github.io/burger-stack-game/screenshot.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍔</text></svg>">
+    
     <style>
         * {
             margin: 0;
@@ -11,18 +36,215 @@
             box-sizing: border-box;
         }
         
-        body {
+        html, body {
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            font-family: Arial, sans-serif;
+            position: fixed;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            touch-action: none;
+            background: #2c3e50;
         }
         
         canvas {
             display: block;
             touch-action: none;
+            -webkit-touch-callout: none;
+        }
+        
+        /* Start Menu */
+        #startMenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+        }
+        
+        #startMenu h1 {
+            font-size: 72px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .burger-emoji {
+            font-size: 120px;
+            margin-bottom: 30px;
+            animation: rotate 4s linear infinite;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .instructions {
+            text-align: center;
+            margin: 30px 0;
+            font-size: 18px;
+            line-height: 1.8;
+            max-width: 600px;
+            padding: 0 20px;
+        }
+        
+        .instructions p {
+            margin: 10px 0;
+        }
+        
+        .highlight {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        
+        #startButton {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border: none;
+            padding: 20px 60px;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+        
+        #startButton:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        
+        #startButton:active {
+            transform: scale(0.98);
+        }
+        
+        .credits {
+            position: absolute;
+            bottom: 20px;
+            font-size: 16px;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        /* Mute Button */
+        #muteButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        #muteButton:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+        
+        /* YouTube Button on Game Over */
+        #youtubeButton {
+            display: none;
+            background: #FF0000;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(255,0,0,0.4);
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        #youtubeButton:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255,0,0,0.6);
+        }
+        
+        .youtube-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            #startMenu h1 {
+                font-size: 48px;
+            }
+            
+            .burger-emoji {
+                font-size: 80px;
+            }
+            
+            .instructions {
+                font-size: 16px;
+                padding: 0 30px;
+            }
+            
+            #startButton {
+                padding: 15px 40px;
+                font-size: 22px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Start Menu -->
+    <div id="startMenu">
+        <div class="burger-emoji">🍔</div>
+        <h1>BURGER STACKER</h1>
+        <div class="instructions">
+            <p>Stack burgers as high as you can!</p>
+            <p><span class="highlight">🎵 Challenge:</span> Beat the song before game over!</p>
+            <p><span class="highlight">🎯 Perfect Stack:</span> 3 perfect drops = size restored</p>
+            <p><span class="highlight">🎮 Controls:</span> Click/Tap to drop</p>
+        </div>
+        <button id="startButton">START GAME</button>
+        <div class="credits">Created by B.HaleyArt</div>
+    </div>
+    
+    <!-- Mute Button (shown during gameplay) -->
+    <button id="muteButton">🔊</button>
+    
+    <!-- YouTube Button (shown on game over) -->
+    <a id="youtubeButton" href="https://youtube.com/@bhaleyart" target="_blank" rel="noopener noreferrer">
+        <span class="youtube-icon">▶️</span> Visit B.HaleyArt
+    </a>
+    
     <script type="module" src="./game.js"></script>
 </body>
 </html>
