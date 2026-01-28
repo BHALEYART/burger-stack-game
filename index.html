@@ -483,7 +483,7 @@
             
             if (!backgroundMusic) {
                 backgroundMusic = new Audio('./music.mp3');
-                backgroundMusic.volume = 0.5;
+                backgroundMusic.volume = 0.2;
                 backgroundMusic.addEventListener('ended', () => {
                     if (gameState === GAME_STATE_PLAYING) {
                         gameOverDiv.innerHTML = `🎉 YOU BEAT THE SONG! 🎉<br>Score: ${score}<br>High Score: ${highScore}`;
