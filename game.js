@@ -96,12 +96,6 @@ gameOverDiv.style.display = 'none';
 gameOverDiv.style.pointerEvents = 'none';
 document.body.appendChild(gameOverDiv);
 
-// UI Elements
-const startMenu = document.getElementById('startMenu');
-const startButton = document.getElementById('startButton');
-const muteButton = document.getElementById('muteButton');
-const youtubeButton = document.getElementById('youtubeButton');
-
 function lerp(a, b, t) {
     return a + (b - a) * t;
 }
@@ -175,13 +169,18 @@ function showGameOver() {
     gameOverDiv.innerHTML = `${message}<br><span style="font-size:24px;">Tap to Restart</span>`;
     gameOverDiv.style.display = '';
     
-    // Show YouTube button
-    youtubeButton.classList.add('visible');
+    const youtubeButton = document.getElementById('youtubeButton');
+    if (youtubeButton) {
+        youtubeButton.classList.add('visible');
+    }
 }
 
 function hideGameOver() {
     gameOverDiv.style.display = 'none';
-    youtubeButton.classList.remove('visible');
+    const youtubeButton = document.getElementById('youtubeButton');
+    if (youtubeButton) {
+        youtubeButton.classList.remove('visible');
+    }
 }
 
 function resetGame() {
@@ -225,6 +224,7 @@ function resetGame() {
     hideGameOver();
     setupTower();
     spawnNextBlock();
+    updateScoreDisplay();
 }
 
 function setupTower() {
@@ -467,21 +467,16 @@ function updateFlash(dt) {
 // Music functions - Custom audio file
 function initMusic() {
     if (!backgroundMusic) {
-        backgroundMusic = new Audio('./music.mp3'); // Your music file
+        backgroundMusic = new Audio('./music.mp3');
         backgroundMusic.loop = false;
         backgroundMusic.volume = 0.5;
         
-        // Get duration when metadata loads
         backgroundMusic.addEventListener('loadedmetadata', () => {
             musicDuration = backgroundMusic.duration;
         });
         
-        // Handle when music ends naturally (player wins!)
         backgroundMusic.addEventListener('ended', () => {
             if (gameState === GAME_STATE_PLAYING) {
-                // Player survived the whole song!
-                activeBlock.state = 'falling';
-                activeBlock.fallVelocity = -0.7;
                 if (score > highScore) {
                     highScore = score;
                 }
@@ -496,7 +491,7 @@ function startMusic() {
     if (backgroundMusic) {
         backgroundMusic.currentTime = 0;
         backgroundMusic.play().catch(err => {
-            console.log('Audio play failed:', err);
+            console.log('Audio play may require user interaction first:', err);
         });
     }
 }
@@ -513,7 +508,10 @@ function toggleMute() {
     if (backgroundMusic) {
         backgroundMusic.muted = isMuted;
     }
-    muteButton.textContent = isMuted ? '🔇' : '🔊';
+    const muteButton = document.getElementById('muteButton');
+    if (muteButton) {
+        muteButton.textContent = isMuted ? '🔇' : '🔊';
+    }
 }
 
 function animate(time) {
@@ -587,15 +585,26 @@ function onUserInput(event) {
 }
 
 function startGame() {
+    console.log('START GAME CALLED!');
+    
+    const startMenu = document.getElementById('startMenu');
+    const muteButton = document.getElementById('muteButton');
+    
     // Hide menu
-    startMenu.classList.add('hidden');
+    if (startMenu) {
+        startMenu.classList.add('hidden');
+        console.log('Menu hidden');
+    }
     
     // Show game UI
     scoreDiv.style.display = 'block';
-    muteButton.classList.add('visible');
+    if (muteButton) {
+        muteButton.classList.add('visible');
+    }
     
     // Set game state
     gameState = GAME_STATE_PLAYING;
+    console.log('Game state set to PLAYING');
     
     // Initialize and start music
     initMusic();
@@ -603,6 +612,8 @@ function startGame() {
     
     // Reset and start game
     resetGame();
+    
+    console.log('Game started!');
 }
 
 function setupThree() {
@@ -655,6 +666,8 @@ function setupThree() {
         }
         lastTouchEnd = now;
     }, { passive: false });
+    
+    console.log('Three.js setup complete');
 }
 
 function onWindowResize() {
@@ -666,10 +679,12 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-// Event listeners
-startButton.addEventListener('click', startGame);
-muteButton.addEventListener('click', toggleMute);
+// EXPOSE FUNCTIONS TO WINDOW FOR ONCLICK
+window.startGameFunction = startGame;
+window.toggleMuteFunction = toggleMute;
 
-// Initialize Three.js and start animation loop
+// Initialize everything
+console.log('Initializing game...');
 setupThree();
 animate(performance.now());
+console.log('Game ready! Click START GAME to play.');
