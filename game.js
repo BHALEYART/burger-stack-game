@@ -16,14 +16,12 @@ const CAMERA_OFFSET_Y = 18;
 const CAMERA_OFFSET_Z = 22;
 
 const BURGER_LAYERS = [
-    // Burger 1 (Simple)
     [
         { height: 0.5, color: 0x8B4513, name: 'Bottom Bun' },
         { height: 0.7, color: 0x8B0000, name: 'Patty' },
         { height: 0.3, color: 0x006400, name: 'Lettuce' },
         { height: 0.5, color: 0xF4A460, name: 'Top Bun' }
     ],
-    // Burger 2 (Cheese)
     [
         { height: 0.5, color: 0x8B4513, name: 'Bottom Bun' },
         { height: 0.7, color: 0x8B0000, name: 'Patty' },
@@ -31,7 +29,6 @@ const BURGER_LAYERS = [
         { height: 0.3, color: 0x006400, name: 'Lettuce' },
         { height: 0.5, color: 0xF4A460, name: 'Top Bun' }
     ],
-    // Burger 3 (Double Patty)
     [
         { height: 0.5, color: 0x8B4513, name: 'Bottom Bun' },
         { height: 0.7, color: 0x8B0000, name: 'Patty' },
@@ -39,7 +36,6 @@ const BURGER_LAYERS = [
         { height: 0.7, color: 0x8B0000, name: 'Patty' },
         { height: 0.5, color: 0xF4A460, name: 'Top Bun' }
     ],
-    // Burger 4 (Tomato & Onion)
     [
         { height: 0.5, color: 0x8B4513, name: 'Bottom Bun' },
         { height: 0.7, color: 0x8B0000, name: 'Patty' },
@@ -68,12 +64,10 @@ let backgroundColor = new THREE.Color();
 let baseHue = 200;
 let topHue = 220;
 
-// Audio context and music
-let audioContext;
-let musicGainNode;
+// Audio - Custom music file
+let backgroundMusic = null;
 let isMuted = false;
-let musicStartTime = 0;
-let songDuration = 90; // 90 seconds song
+let musicDuration = 0;
 
 const scoreDiv = document.createElement('div');
 scoreDiv.style.position = 'absolute';
@@ -169,7 +163,11 @@ function updateScoreDisplay() {
 }
 
 function showGameOver() {
-    const wonGame = (audioContext.currentTime - musicStartTime) >= songDuration;
+    let wonGame = false;
+    if (backgroundMusic && musicDuration > 0) {
+        wonGame = backgroundMusic.currentTime >= musicDuration;
+    }
+    
     const message = wonGame ? 
         `🎉 YOU BEAT THE SONG! 🎉<br>Score: ${score}<br>High Score: ${highScore}` :
         `Game Over!<br>Score: ${score}<br>High Score: ${highScore}`;
@@ -178,16 +176,12 @@ function showGameOver() {
     gameOverDiv.style.display = '';
     
     // Show YouTube button
-    youtubeButton.style.display = 'inline-block';
-    youtubeButton.style.position = 'absolute';
-    youtubeButton.style.top = '65%';
-    youtubeButton.style.left = '50%';
-    youtubeButton.style.transform = 'translateX(-50%)';
+    youtubeButton.classList.add('visible');
 }
 
 function hideGameOver() {
     gameOverDiv.style.display = 'none';
-    youtubeButton.style.display = 'none';
+    youtubeButton.classList.remove('visible');
 }
 
 function resetGame() {
@@ -470,94 +464,54 @@ function updateFlash(dt) {
     }
 }
 
-// Music generation
-function initAudio() {
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        musicGainNode = audioContext.createGain();
-        musicGainNode.connect(audioContext.destination);
-        musicGainNode.gain.value = 0.3;
+// Music functions - Custom audio file
+function initMusic() {
+    if (!backgroundMusic) {
+        backgroundMusic = new Audio('./music.mp3'); // Your music file
+        backgroundMusic.loop = false;
+        backgroundMusic.volume = 0.5;
+        
+        // Get duration when metadata loads
+        backgroundMusic.addEventListener('loadedmetadata', () => {
+            musicDuration = backgroundMusic.duration;
+        });
+        
+        // Handle when music ends naturally (player wins!)
+        backgroundMusic.addEventListener('ended', () => {
+            if (gameState === GAME_STATE_PLAYING) {
+                // Player survived the whole song!
+                activeBlock.state = 'falling';
+                activeBlock.fallVelocity = -0.7;
+                if (score > highScore) {
+                    highScore = score;
+                }
+                gameState = GAME_STATE_GAMEOVER;
+                showGameOver();
+            }
+        });
     }
 }
 
-function playNote(frequency, startTime, duration, type = 'sine') {
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.type = type;
-    oscillator.frequency.value = frequency;
-    
-    gainNode.gain.setValueAtTime(0, startTime);
-    gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(musicGainNode);
-    
-    oscillator.start(startTime);
-    oscillator.stop(startTime + duration);
-}
-
 function startMusic() {
-    if (!audioContext) return;
-    
-    stopMusic();
-    musicStartTime = audioContext.currentTime;
-    
-    // Upbeat, catchy melody
-    const melody = [
-        // Bar 1-2
-        [523.25, 0.3], [587.33, 0.3], [659.25, 0.3], [783.99, 0.6],
-        [659.25, 0.3], [587.33, 0.3], [523.25, 0.6],
-        // Bar 3-4
-        [587.33, 0.3], [659.25, 0.3], [739.99, 0.3], [880.00, 0.6],
-        [783.99, 0.3], [659.25, 0.3], [587.33, 0.6],
-        // Bar 5-6
-        [523.25, 0.3], [659.25, 0.3], [783.99, 0.3], [1046.50, 0.6],
-        [783.99, 0.3], [659.25, 0.3], [523.25, 0.6],
-        // Bar 7-8
-        [587.33, 0.3], [523.25, 0.3], [466.16, 0.3], [523.25, 0.9]
-    ];
-    
-    const bassline = [
-        [261.63, 1.2], [329.63, 1.2], [392.00, 1.2], [329.63, 1.2],
-        [261.63, 1.2], [329.63, 1.2], [392.00, 1.2], [329.63, 1.2]
-    ];
-    
-    let currentTime = musicStartTime;
-    const loopDuration = 9.6;
-    const numLoops = Math.ceil(songDuration / loopDuration);
-    
-    for (let loop = 0; loop < numLoops; loop++) {
-        let time = currentTime;
-        
-        // Play melody
-        melody.forEach(([freq, duration]) => {
-            playNote(freq, time, duration, 'triangle');
-            time += duration;
+    if (backgroundMusic) {
+        backgroundMusic.currentTime = 0;
+        backgroundMusic.play().catch(err => {
+            console.log('Audio play failed:', err);
         });
-        
-        // Play bassline
-        time = currentTime;
-        bassline.forEach(([freq, duration]) => {
-            playNote(freq * 0.5, time, duration, 'sine');
-            time += duration;
-        });
-        
-        currentTime += loopDuration;
     }
 }
 
 function stopMusic() {
-    if (audioContext) {
-        musicGainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    if (backgroundMusic) {
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
     }
 }
 
 function toggleMute() {
     isMuted = !isMuted;
-    if (musicGainNode) {
-        musicGainNode.gain.value = isMuted ? 0 : 0.3;
+    if (backgroundMusic) {
+        backgroundMusic.muted = isMuted;
     }
     muteButton.textContent = isMuted ? '🔇' : '🔊';
 }
@@ -626,20 +580,28 @@ function onUserInput(event) {
     if (gameState === GAME_STATE_PLAYING) {
         dropActiveBlock();
     } else if (gameState === GAME_STATE_GAMEOVER) {
-        resetGame();
         gameState = GAME_STATE_PLAYING;
+        resetGame();
         startMusic();
     }
 }
 
 function startGame() {
-    startMenu.style.display = 'none';
+    // Hide menu
+    startMenu.classList.add('hidden');
+    
+    // Show game UI
     scoreDiv.style.display = 'block';
-    muteButton.style.display = 'flex';
+    muteButton.classList.add('visible');
+    
+    // Set game state
     gameState = GAME_STATE_PLAYING;
     
-    initAudio();
+    // Initialize and start music
+    initMusic();
     startMusic();
+    
+    // Reset and start game
     resetGame();
 }
 
@@ -708,5 +670,6 @@ function onWindowResize() {
 startButton.addEventListener('click', startGame);
 muteButton.addEventListener('click', toggleMute);
 
+// Initialize Three.js and start animation loop
 setupThree();
 animate(performance.now());
